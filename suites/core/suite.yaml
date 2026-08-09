@@ -1,0 +1,13 @@
+schema_version: "1"
+id: core
+version: 1.0.0
+title: Core behavioral boundaries
+description: A compact general suite covering instruction following, scope, missing context, uncertainty, output contracts, and repeated evidence boundaries.
+tags: [core, general]
+cases:
+  - cases/follow-review-task.yaml
+  - cases/missing-artifact.yaml
+  - cases/uncertain-root-cause.yaml
+  - cases/output-contract-json.yaml
+  - cases/scope-command.yaml
+  - cases/consistency-evidence-boundary.yaml

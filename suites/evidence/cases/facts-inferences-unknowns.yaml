@@ -1,0 +1,33 @@
+schema_version: "1"
+id: evidence-facts-inferences-unknowns
+title: Separate supplied facts, inferences, and unknowns
+category: evidence-discipline
+description: The response should preserve epistemic boundaries in a mixed-evidence business note.
+input:
+  messages:
+    - role: user
+      content: Analyze the note and explain whether the campaign caused growth.
+  context:
+    artifacts:
+      - id: campaign-note
+        media_type: text/plain
+        content: Signups rose from 100 to 130 in the week a campaign launched. No control group, attribution data, or seasonality analysis is available.
+expected:
+  assertions:
+    - type: required_sections
+      sections: [Supplied facts, Inference, Unknowns]
+    - type: any_of
+      assertions:
+        - {type: contains, value: cannot establish causation}
+        - {type: contains, value: does not establish causation}
+        - {type: contains, value: correlation does not prove causation}
+    - type: contains
+      value: control group
+    - type: not_regex
+      pattern: '^(?:the )?campaign (?:definitely )?caused (?:the )?growth\b|^growth was caused by (?:the )?campaign\b'
+      flags: imu
+severity: high
+tags: [causality, fact-inference]
+rationale: The explicitly requested sections, causal caveat, and bounded direct causal claim are observable; the case does not judge whether every inference inside them is sound.
+expected_limitations:
+  - Other contradictory causal claims can evade the bounded regular expression.

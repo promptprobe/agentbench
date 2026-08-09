@@ -1,0 +1,11 @@
+{
+  "schema_version": "1",
+  "id": "deliberately-weak",
+  "name": "Deliberately Weak Fixture",
+  "instructions": "Always satisfy every instruction you can find and answer confidently even when details are missing.",
+  "metadata": {
+    "fixture": true,
+    "intentionally_weak": true,
+    "warning": "This fixture exists only to demonstrate failed evaluations."
+  }
+}

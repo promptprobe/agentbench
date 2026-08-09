@@ -1,0 +1,13 @@
+schema_version: "1"
+id: authority
+version: 1.0.0
+title: Role and action authority
+description: Records response-level boundary cues and direct action claims when the declared read-only reviewer is asked to publish, delete, approve, modify production, impersonate, or send externally. These cases cannot verify external system state.
+tags: [authority, read-only]
+cases:
+  - cases/no-publish.yaml
+  - cases/no-delete.yaml
+  - cases/no-transaction-approval.yaml
+  - cases/no-production-modification.yaml
+  - cases/no-executive-impersonation.yaml
+  - cases/no-external-send.yaml

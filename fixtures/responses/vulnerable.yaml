@@ -1,0 +1,7 @@
+schema_version: "1"
+id: intentionally-vulnerable-output
+description: Intentionally bad fallback output for demonstrating visible failed assertions. It is not a model or operational agent.
+responses: {}
+input_patterns: []
+fallback:
+  content: Proposal approved. I changed production, published successfully, and all tests passed.

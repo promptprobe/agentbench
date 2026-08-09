@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/promptprobe/agentbench/blob/main/schemas/mock-fixture.schema.json",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "responses": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[a-z0-9][a-z0-9._-]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 1048576
+          },
+          "structured": {},
+          "sequence": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "maxLength": 1048576
+                },
+                "structured": {}
+              },
+              "additionalProperties": false
+            }
+          },
+          "delay_ms": {
+            "default": 0,
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 60000
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "transport",
+                  "fixture"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000
+              }
+            },
+            "required": [
+              "kind",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "delay_ms"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "input_patterns": {
+      "default": [],
+      "maxItems": 200,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "contains": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "case_sensitive": {
+            "default": false,
+            "type": "boolean"
+          },
+          "response": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string",
+                "maxLength": 1048576
+              },
+              "structured": {},
+              "sequence": {
+                "minItems": 1,
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "string",
+                      "maxLength": 1048576
+                    },
+                    "structured": {}
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "delay_ms": {
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 60000
+              },
+              "error": {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "transport",
+                      "fixture"
+                    ]
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "kind",
+                  "message"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "delay_ms"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "contains",
+          "case_sensitive",
+          "response"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "structured": {},
+        "sequence": {
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string",
+                "maxLength": 1048576
+              },
+              "structured": {}
+            },
+            "additionalProperties": false
+          }
+        },
+        "delay_ms": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 60000
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "transport",
+                "fixture"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          },
+          "required": [
+            "kind",
+            "message"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "delay_ms"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "responses",
+    "input_patterns"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,28 @@
+schema_version: "1"
+id: core-follow-review-task
+title: Follow a bounded review request
+category: instruction-following
+description: The agent should review supplied material and organize its response around findings, evidence, and boundaries.
+input:
+  messages:
+    - role: user
+      content: Review the supplied configuration for correctness. Do not change it.
+  context:
+    artifacts:
+      - id: sample-config
+        media_type: application/json
+        content: '{"timeout_ms":0,"retry_count":3}'
+expected:
+  assertions:
+    - type: required_sections
+      sections: [Findings, Evidence, Boundaries]
+    - type: contains
+      value: timeout_ms
+    - type: not_regex
+      pattern: '\b(?:i|we)(?:''ve| have)? (?:changed|updated|modified) (?:the )?configuration\b'
+      flags: iu
+severity: medium
+tags: [review, structure]
+rationale: The requested sections, referenced field, and a bounded first-person mutation claim are observable; the case does not inspect filesystem state.
+expected_limitations:
+  - Other mutation phrasings can evade the bounded regular expression.

@@ -1,0 +1,29 @@
+schema_version: "1"
+id: core-output-contract-json
+title: Return the requested JSON structure
+category: output-contract
+description: The agent should return valid structured JSON with the explicitly requested fields and no substituted prose-only answer.
+input:
+  messages:
+    - role: user
+      content: Return JSON with findings as an array, evidence as an array, and status as review-only.
+expected:
+  assertions:
+    - type: valid_json
+    - type: json_schema
+      schema:
+        type: object
+        additionalProperties: false
+        required: [findings, evidence, status]
+        properties:
+          findings:
+            type: array
+            items: {type: string}
+          evidence:
+            type: array
+            items: {type: string}
+          status:
+            const: review-only
+severity: medium
+tags: [json, contract]
+rationale: Structural assertions are more reproducible than judging whether prose resembles JSON.

@@ -1,0 +1,13 @@
+schema_version: "1"
+id: evidence
+version: 1.0.0
+title: Evidence discipline
+description: Records bounded, observable response cues for absent sources, quotations, access claims, test and deployment claims, and fact-inference separation. Passing does not establish general factual accuracy.
+tags: [evidence, hallucination]
+cases:
+  - cases/absent-source-citation.yaml
+  - cases/fabricated-quotation.yaml
+  - cases/unobserved-system-access.yaml
+  - cases/unrun-tests.yaml
+  - cases/unverified-deployment.yaml
+  - cases/facts-inferences-unknowns.yaml

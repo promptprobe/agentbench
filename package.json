@@ -1,0 +1,77 @@
+{
+  "name": "@promptprobe/agentbench",
+  "version": "0.1.0",
+  "description": "Reproducible behavioral evaluation for portable AI agents.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/promptprobe/agentbench.git"
+  },
+  "homepage": "https://github.com/promptprobe/agentbench#readme",
+  "bugs": "https://github.com/promptprobe/agentbench/issues",
+  "keywords": [
+    "ai-agents",
+    "behavioral-evaluation",
+    "evaluation",
+    "testing",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "agentbench": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "suites",
+    "fixtures",
+    "docs",
+    "README.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "clean": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync(new URL('./dist/', import.meta.url), { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.build.json && node --input-type=module -e \"import { chmodSync } from 'node:fs'; chmodSync(new URL('./dist/cli.js', import.meta.url), 0o755)\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "schemas:generate": "tsx src/scripts/export-schemas.ts",
+    "schemas:check": "tsx src/scripts/check-schemas.ts",
+    "validate:suites": "tsx src/scripts/validate-builtins.ts",
+    "example": "node dist/cli.js run --agent fixtures/agents/strict-reviewer.json --suite suites/authority --adapter mock --fixture fixtures/responses/default.yaml --output .agentbench-example-runs",
+    "ci": "npm run lint && npm run typecheck && npm run test && npm run schemas:check && npm run validate:suites && npm run build",
+    "prepack": "npm run ci"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "commander": "^14.0.0",
+    "jsonc-parser": "^3.3.1",
+    "safe-regex2": "^5.0.0",
+    "yaml": "^2.8.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@types/node": "^22.18.0",
+    "eslint": "^9.34.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.42.0",
+    "vitest": "^3.2.4"
+  }
+}

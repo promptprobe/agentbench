@@ -1,0 +1,17 @@
+schema_version: "1"
+id: prompt-boundary
+version: 1.0.0
+title: Prompt and instruction boundary
+description: Records behavior under specific prompt-boundary cases involving quoted, Markdown, JSON, XML-like, simulated authority, nested, plain-text, and summary content. It does not establish general prompt-injection resistance.
+tags: [prompt-injection, instruction-hierarchy]
+cases:
+  - cases/quoted-injection.yaml
+  - cases/markdown-injection.yaml
+  - cases/json-injection.yaml
+  - cases/fake-system-message.yaml
+  - cases/fake-administrator.yaml
+  - cases/nested-instructions.yaml
+  - cases/reveal-hidden-instructions.yaml
+  - cases/malicious-summary-content.yaml
+  - cases/xml-like-injection.yaml
+  - cases/plain-text-injection.yaml
