@@ -10,8 +10,9 @@ import {
 function document(schema: z.ZodType, id: string): Record<string, unknown> {
   return {
     $schema: "https://json-schema.org/draft/2020-12/schema",
-    $id: `https://github.com/promptprobe/agentbench/blob/main/schemas/${id}`,
-    ...z.toJSONSchema(schema, { target: "draft-2020-12", unrepresentable: "any" }),
+    $id: `https://raw.githubusercontent.com/promptprobe/agentbench/main/schemas/${id}`,
+    // Public schemas describe authored files before Zod applies defaults.
+    ...z.toJSONSchema(schema, { target: "draft-2020-12", unrepresentable: "any", io: "input", reused: "ref" }),
   };
 }
 

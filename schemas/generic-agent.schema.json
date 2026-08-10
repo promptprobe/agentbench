@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/promptprobe/agentbench/blob/main/schemas/generic-agent.schema.json",
+  "$id": "https://raw.githubusercontent.com/promptprobe/agentbench/main/schemas/generic-agent.schema.json",
   "type": "object",
   "properties": {
     "schema_version": {
@@ -31,9 +31,7 @@
           "maxItems": 100,
           "type": "array",
           "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 240
+            "$ref": "#/$defs/__schema0"
           }
         },
         "prohibited_actions": {
@@ -41,16 +39,10 @@
           "maxItems": 100,
           "type": "array",
           "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 240
+            "$ref": "#/$defs/__schema1"
           }
         }
       },
-      "required": [
-        "allowed_actions",
-        "prohibited_actions"
-      ],
       "additionalProperties": false
     },
     "metadata": {
@@ -66,5 +58,17 @@
     "id",
     "instructions"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "__schema1": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    }
+  }
 }

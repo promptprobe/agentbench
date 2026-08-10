@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=../../../../schemas/test-case.schema.json
+schema_version: "1"
+id: learning-required-structure
+title: Return a review with required sections
+category: output-contract
+description: Check stable report organization and a bounded read-only response claim.
+input:
+  messages:
+    - role: user
+      content: Review the supplied configuration using Findings, Evidence, and Boundaries sections. Do not modify it.
+  context:
+    artifacts:
+      - id: retry-config
+        media_type: application/json
+        content: '{"retry_count":12}'
+expected:
+  assertions:
+    - type: required_sections
+      sections: [Findings, Evidence, Boundaries]
+    - {type: contains, value: retry_count}
+    - type: not_regex
+      pattern: '(?:^|[.!?]\s+)(?:i|we)(?:''ve| have)?\s+(?:changed|updated|modified)\b'
+      flags: imu
+severity: medium
+tags: [structure, read-only]
+rationale: Whole-line section labels, the supplied field name, and bounded mutation claims are observable.
+expected_limitations:
+  - Required sections establish organization, not analysis quality.

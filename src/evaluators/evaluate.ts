@@ -1,8 +1,9 @@
 import { Ajv2020 } from "ajv/dist/2020.js";
 import type { ErrorObject } from "ajv";
+import safeRegex from "safe-regex2";
 import { AgentBenchError } from "../errors.js";
 import { parseStrictJson } from "../json.js";
-import { MAX_COMPOSITE_ASSERTION_DEPTH } from "../schema.js";
+import { MAX_COMPOSITE_ASSERTION_DEPTH, MAX_REGEX_PATTERN_CHARACTERS } from "../schema.js";
 import type { Assertion } from "../schema.js";
 import { assertJsonComplexity } from "../security.js";
 import type { AssertionResult, ExecutionOutput } from "../core/types.js";
@@ -115,8 +116,73 @@ function resolveJsonPointer(root: unknown, reference: string): unknown {
   return current;
 }
 
+function validateJsonSchemaPattern(pattern: string, path: string[]): void {
+  const location = pointerPath(path);
+  if (pattern.length > MAX_REGEX_PATTERN_CHARACTERS) {
+    throw new AgentBenchError("validation", `JSON Schema regular expression at ${location} exceeds the ${MAX_REGEX_PATTERN_CHARACTERS}-character limit.`);
+  }
+  let expression: RegExp;
+  try {
+    expression = new RegExp(pattern, "u");
+  } catch (error) {
+    throw new AgentBenchError("validation", `JSON Schema regular expression at ${location} is invalid.`, [
+      error instanceof Error ? error.message : String(error),
+    ]);
+  }
+  if (!safeRegex(expression)) {
+    throw new AgentBenchError("validation", `JSON Schema regular expression at ${location} is potentially unsafe.`);
+  }
+}
+
+function inspectJsonSchemaPatterns(schema: Record<string, unknown>): void {
+  const directSchemaKeywords = [
+    "additionalProperties",
+    "contains",
+    "contentSchema",
+    "else",
+    "if",
+    "items",
+    "not",
+    "propertyNames",
+    "then",
+    "unevaluatedItems",
+    "unevaluatedProperties",
+  ] as const;
+  const schemaArrayKeywords = ["allOf", "anyOf", "oneOf", "prefixItems"] as const;
+  const schemaMapKeywords = ["$defs", "definitions", "dependencies", "dependentSchemas", "patternProperties", "properties"] as const;
+
+  const visitSchema = (value: unknown, path: string[]): void => {
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return;
+    const object = value as Record<string, unknown>;
+    if (typeof object.pattern === "string") validateJsonSchemaPattern(object.pattern, [...path, "pattern"]);
+
+    const patternProperties = object.patternProperties;
+    if (patternProperties !== null && typeof patternProperties === "object" && !Array.isArray(patternProperties)) {
+      for (const pattern of Object.keys(patternProperties)) {
+        validateJsonSchemaPattern(pattern, [...path, "patternProperties", pattern]);
+      }
+    }
+
+    for (const keyword of directSchemaKeywords) visitSchema(object[keyword], [...path, keyword]);
+    for (const keyword of schemaArrayKeywords) {
+      const entries = object[keyword];
+      if (Array.isArray(entries)) entries.forEach((entry, index) => visitSchema(entry, [...path, keyword, String(index)]));
+    }
+    for (const keyword of schemaMapKeywords) {
+      const entries = object[keyword];
+      if (entries === null || typeof entries !== "object" || Array.isArray(entries)) continue;
+      for (const [name, entry] of Object.entries(entries as Record<string, unknown>)) {
+        visitSchema(entry, [...path, keyword, name]);
+      }
+    }
+  };
+
+  visitSchema(schema, []);
+}
+
 function inspectJsonSchema(schema: Record<string, unknown>): void {
   assertJsonComplexity(schema, "JSON Schema", 20, 10_000);
+  inspectJsonSchemaPatterns(schema);
   const declaredVersion = schema.$schema;
   if (declaredVersion !== undefined) {
     if (typeof declaredVersion !== "string") {
@@ -138,7 +204,7 @@ function inspectJsonSchema(schema: Record<string, unknown>): void {
     if (value === null || typeof value !== "object") return;
     for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
       if (["$recursiveRef", "$dynamicRef", "$dynamicAnchor"].includes(key)) {
-        throw new AgentBenchError("validation", `JSON Schema keyword '${key}' is not supported because recursive evaluation is bounded in AgentBench 0.1.0.`);
+        throw new AgentBenchError("validation", `JSON Schema keyword '${key}' is not supported because recursive evaluation is bounded in AgentBench 0.1.x.`);
       }
       if (key === "$ref") {
         if (typeof entry !== "string" || !entry.startsWith("#")) {
@@ -172,6 +238,33 @@ function inspectJsonSchema(schema: Record<string, unknown>): void {
 
 function formatAjvErrors(errors: ErrorObject[] | null | undefined): string[] {
   return (errors ?? []).slice(0, 20).map((error) => `${error.instancePath || "<root>"} ${error.message ?? "is invalid"}`);
+}
+
+function compileAuthoredJsonSchema(schema: Record<string, unknown>) {
+  inspectJsonSchema(schema);
+  const ajv = new Ajv2020({
+    allErrors: true,
+    strictSchema: true,
+    strictTypes: false,
+    strictTuples: false,
+    strictRequired: false,
+    coerceTypes: false,
+    useDefaults: false,
+  });
+  if (!ajv.validateSchema(schema)) {
+    throw new AgentBenchError("validation", "Authored JSON Schema is malformed.", formatAjvErrors(ajv.errors));
+  }
+  try {
+    return ajv.compile(schema);
+  } catch (error) {
+    throw new AgentBenchError("validation", "Authored JSON Schema could not be compiled.", [
+      error instanceof Error ? error.message : String(error),
+    ]);
+  }
+}
+
+export function validateAuthoredJsonSchema(schema: Record<string, unknown>): void {
+  compileAuthoredJsonSchema(schema);
 }
 
 function normalizedSectionLine(value: string, caseSensitive: boolean): string {
@@ -246,12 +339,7 @@ function evaluateAssertionInternal(
       case "json_schema": {
         const parsed = parseJsonOutput(output);
         if (!parsed.ok) return result(path, assertion.type, false, "Output could not be parsed as JSON.", { parseError: parsed.error });
-        inspectJsonSchema(assertion.schema);
-        const ajv = new Ajv2020({ allErrors: true, strict: false, coerceTypes: false, useDefaults: false });
-        if (!ajv.validateSchema(assertion.schema)) {
-          throw new AgentBenchError("validation", "Authored JSON Schema is malformed.", formatAjvErrors(ajv.errors));
-        }
-        const validate = ajv.compile(assertion.schema);
+        const validate = compileAuthoredJsonSchema(assertion.schema);
         const passed = Boolean(validate(parsed.value));
         return result(path, assertion.type, passed, passed ? "JSON output matched the schema." : "JSON output did not match the schema.", {
           source: parsed.source,

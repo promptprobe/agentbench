@@ -44,10 +44,11 @@ const RegexFlagsSchema = z
   .string()
   .max(5)
   .regex(/^(?!.*(.).*\1)[imsu]*$/, "Only unique i, m, s, and u flags are supported.");
+export const MAX_REGEX_PATTERN_CHARACTERS = 500;
 const RegexPatternSchema = z
   .string()
   .min(1)
-  .max(500)
+  .max(MAX_REGEX_PATTERN_CHARACTERS)
   .refine((pattern) => safeRegex(pattern), "Pattern is potentially unsafe.");
 
 function regexAssertionSchema(type: "regex" | "not_regex") {

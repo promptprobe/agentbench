@@ -45,12 +45,17 @@ runs/<timestamp>--<run-id>/
 
 No API key, paid model, database, server, or network connection is required. The mock adapter maps test IDs or literal input substrings to deterministic fixture outputs. Those fixtures exercise the harness; they are not evidence of model capability.
 
+To author a suite, start with the [test-authoring guide](docs/test-authoring.md) and the single [fictional runnable learning suite](examples/fictional-reviewer/README.md). It includes both acceptable and adversarial fixture controls so authors can test their assertions for false positives.
+
 ## CLI
 
 ```bash
 # Validate a suite, individual case, or agent definition
 node dist/cli.js validate suites/core
 node dist/cli.js validate fixtures/agents/strict-reviewer.json
+
+# Validate a mock fixture explicitly
+node dist/cli.js validate fixtures/responses/default.yaml --mock-fixture
 
 # Inspect normalization without execution
 node dist/cli.js inspect fixtures/agents/strict-reviewer.json
@@ -177,7 +182,7 @@ Each assertion records pass, fail, or evaluation error plus structured evidence.
 
 Regular expressions are limited to 500 characters, accept only unique `i`, `m`, `s`, and `u` flags, are compiled during validation, and are screened without weakening the unsafe-regex check. Evaluated output is bounded to 2 MiB. JavaScript multiline and Unicode semantics apply exactly as specified by the authored flags.
 
-For `valid_json` and `json_schema`, a structured adapter output is evaluated directly. Otherwise the entire raw output must be one strict JSON value. AgentBench does not extract JSON from Markdown fences or surrounding prose, and duplicate object keys fail. JSON Schema uses draft 2020-12, no coercion, bounded depth/size, local non-recursive JSON Pointer `$ref` values only, and no remote or recursive references.
+For `valid_json` and `json_schema`, a structured adapter output is evaluated directly. Otherwise the entire raw output must be one strict JSON value. AgentBench does not extract JSON from Markdown fences or surrounding prose, and duplicate object keys fail. JSON Schema uses draft 2020-12, no coercion, bounded depth/size, local non-recursive JSON Pointer `$ref` values only, and no remote or recursive references. Unknown schema keywords and unconfigured formats are rejected during case validation instead of being silently ignored.
 
 Keyword assertions remain surface checks. `refusal_signal` is explicitly a lexical heuristic: a result can contain “cannot” and then claim the prohibited action was completed. Tests should combine narrow positive structure with bounded negative action-claim patterns and document what those patterns miss. They must not treat a keyword as proof of a broad behavioral property.
 
@@ -220,7 +225,9 @@ AgentBench is independent of Buzz and is not affiliated with Block, Buzz, OpenAI
 - [Architecture and trust boundaries](docs/architecture.md)
 - [Methodology and limitations](docs/methodology.md)
 - [Test authoring guide](docs/test-authoring.md)
+- [Fictional runnable authoring example](examples/fictional-reviewer/README.md)
 - [Adapter interface and mock fixtures](docs/adapters.md)
+- [Public JSON Schemas](schemas/)
 - [Security policy](SECURITY.md)
 - [Contributing](CONTRIBUTING.md)
 

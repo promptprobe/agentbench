@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { stat } from "node:fs/promises";
 import { basename, dirname, extname, resolve } from "node:path";
-import { Command, InvalidArgumentError } from "commander";
+import { Command, InvalidArgumentError, Option } from "commander";
 import { MockAdapter } from "./adapters/mock.js";
 import { loadAgent } from "./agents/load-agent.js";
 import { runEvaluation } from "./core/run.js";
@@ -65,12 +65,21 @@ program
 
 program
   .command("validate")
-  .description("Validate an agent, suite directory, suite manifest, or test case.")
+  .description("Validate an agent, suite directory, suite manifest, test case, or explicit mock fixture.")
   .argument("<target>")
+  .option("--mock-fixture", "Interpret the target as a mock response fixture")
   .option("--json", "Emit machine-readable JSON")
-  .action(async (target: string, options: OutputOption) => {
+  .action(async (target: string, options: OutputOption & { mockFixture?: boolean }) => {
     const path = resolve(target);
     const info = await stat(path).catch(() => undefined);
+    if (options.mockFixture) {
+      if (!info?.isFile()) throw new AgentBenchError("validation", `Mock fixture validation target was not found or is not a file: ${path}`);
+      const descriptor = (await MockAdapter.fromFile(path)).describe();
+      const id = String(descriptor.parameters.fixtureId);
+      const sha256 = String(descriptor.parameters.fixtureSha256);
+      print(options.json ? { valid: true, kind: "mock-fixture", id, sha256 } : `Valid mock fixture '${id}' (source-bytes SHA-256 ${sha256}).`, options.json);
+      return;
+    }
     if (info?.isDirectory()) {
       const suite = await loadSuite(path);
       print(options.json ? { valid: true, kind: "suite", id: suite.manifest.id, version: suite.manifest.version, cases: suite.cases.length } : `Valid suite '${suite.manifest.id}' ${suite.manifest.version}: ${suite.cases.length} cases.`, options.json);
@@ -121,7 +130,7 @@ program
   .requiredOption("--agent <path>", "Agent definition path")
   .requiredOption("--suite <path-or-id>", "Suite directory or built-in suite ID")
   .option("--adapter <id>", "Execution adapter", "mock")
-  .option("--fixture <path>", "Mock response fixture", DEFAULT_MOCK_FIXTURE)
+  .addOption(new Option("--fixture <path>", "Mock response fixture").default(DEFAULT_MOCK_FIXTURE, "bundled fixtures/responses/default.yaml"))
   .option("--repeat <count>", "Number of repetitions", integerOption, 1)
   .option("--timeout <milliseconds>", "Per-test timeout", integerOption, 10_000)
   .option("--output <directory>", "Run output directory", "runs")

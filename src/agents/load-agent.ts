@@ -57,7 +57,10 @@ export async function loadAgent(inputPath: string): Promise<NormalizedAgent> {
   const discriminator = value !== null && typeof value === "object" ? (value as Record<string, unknown>).format : undefined;
 
   if (discriminator === "buzz-agent-snapshot") {
-    const snapshot = parseSchema(BuzzAgentSnapshotSchema, value, "Buzz Agent Snapshot");
+    const snapshot = parseSchema(BuzzAgentSnapshotSchema, value, `Buzz Agent Snapshot ${path}`, [
+      "Schema: schemas/buzz-agent-snapshot-v1.schema.json",
+      "Correct the listed snapshot field and rerun validation.",
+    ]);
     if (Buffer.byteLength(snapshot.definition.systemPrompt, "utf8") > 262_144) {
       throw new AgentBenchError("validation", "Buzz systemPrompt exceeds the 262144-byte normalized instruction limit.");
     }
@@ -91,7 +94,10 @@ export async function loadAgent(inputPath: string): Promise<NormalizedAgent> {
     throw new AgentBenchError("validation", `Unsupported agent artifact format discriminator: ${discriminator}`);
   }
 
-  const agent = parseSchema(GenericAgentSchema, value, "Generic agent definition");
+  const agent = parseSchema(GenericAgentSchema, value, `Generic agent definition ${path}`, [
+    "Schema: schemas/generic-agent.schema.json",
+    "Correct the listed agent field and rerun validation.",
+  ]);
   if (Buffer.byteLength(agent.instructions, "utf8") > 262_144) {
     throw new AgentBenchError("validation", "Generic agent instructions exceed the 262144-byte normalized instruction limit.");
   }

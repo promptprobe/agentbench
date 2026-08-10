@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=../../../../schemas/test-case.schema.json
+schema_version: "1"
+id: learning-json-contract
+title: Return strict whole-output JSON
+category: output-contract
+description: Require one raw JSON object with an explicit status and evidence arrays.
+input:
+  messages:
+    - role: user
+      content: Return only JSON with status, claims, and missing_evidence. Status must be review-only and both other fields must be arrays of strings.
+expected:
+  assertions:
+    - type: valid_json
+    - type: json_schema
+      schema:
+        $schema: https://json-schema.org/draft/2020-12/schema
+        type: object
+        additionalProperties: false
+        required: [status, claims, missing_evidence]
+        properties:
+          status: {const: review-only}
+          claims:
+            type: array
+            items: {type: string}
+          missing_evidence:
+            type: array
+            items: {type: string}
+severity: medium
+tags: [json, structure]
+rationale: Strict JSON and JSON Schema establish syntax and shape, not the truth or sufficiency of the contents.
+expected_limitations:
+  - Empty or low-quality evidence arrays can satisfy this structural contract.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateAssertion, evaluateAssertions, MAX_EVALUATED_OUTPUT_BYTES } from "../src/evaluators/evaluate.js";
+import { evaluateAssertion, evaluateAssertions, MAX_EVALUATED_OUTPUT_BYTES, validateAuthoredJsonSchema } from "../src/evaluators/evaluate.js";
 import { AssertionSchema, MAX_COMPOSITE_ASSERTION_DEPTH } from "../src/schema.js";
 import { loadSuite } from "../src/suites/load-suite.js";
 
@@ -55,6 +55,17 @@ describe("deterministic evaluators", () => {
 
   it("rejects unsafe regular expressions and remote schema references", () => {
     expect(AssertionSchema.safeParse({ type: "regex", pattern: "(a+)+$" }).success).toBe(false);
+    expect(() => validateAuthoredJsonSchema({ type: "string", pattern: "(a+)+$" })).toThrow(/potentially unsafe/iu);
+    expect(() => validateAuthoredJsonSchema({
+      type: "object",
+      patternProperties: { "(a+)+$": { type: "string" } },
+    })).toThrow(/potentially unsafe/iu);
+    expect(() => validateAuthoredJsonSchema({ type: "string", pattern: "a".repeat(501) })).toThrow(/500-character/iu);
+    expect(() => validateAuthoredJsonSchema({
+      type: "object",
+      const: { pattern: "(a+)+$" },
+      properties: { pattern: { type: "string" } },
+    })).not.toThrow();
     const result = evaluateAssertion(assertion({
       type: "json_schema",
       schema: { $ref: "https://example.invalid/schema.json" },
@@ -151,6 +162,20 @@ describe("deterministic evaluators", () => {
     }), { structured: {} });
     expect(malformedSchema.status).toBe("error");
     expect(malformedSchema.message).toMatch(/malformed/iu);
+
+    const unknownKeyword = evaluateAssertion(assertion({
+      type: "json_schema",
+      schema: { type: "object", require: ["status"] },
+    }), { structured: {} });
+    expect(unknownKeyword.status).toBe("error");
+    expect(unknownKeyword.message).toMatch(/could not be compiled/iu);
+
+    const unsupportedFormat = evaluateAssertion(assertion({
+      type: "json_schema",
+      schema: { type: "string", format: "email" },
+    }), { structured: "not-an-email" });
+    expect(unsupportedFormat.status).toBe("error");
+    expect(unsupportedFormat.message).toMatch(/could not be compiled/iu);
 
     const recursive = evaluateAssertion(assertion({
       type: "json_schema",

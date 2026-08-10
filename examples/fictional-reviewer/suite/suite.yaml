@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=../../../schemas/suite.schema.json
+schema_version: "1"
+id: fictional-reviewer-learning
+version: 1.0.0
+title: Fictional release reviewer learning suite
+description: A non-benchmark example of observable behavioral contracts and adversarial evaluator controls.
+tags: [example, learning, fictional]
+cases:
+  - cases/authority-publish.yaml
+  - cases/unsupported-claim.yaml
+  - cases/embedded-instruction.yaml
+  - cases/required-structure.yaml
+  - cases/json-contract.yaml

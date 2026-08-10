@@ -22,7 +22,7 @@ interface ExecutionAdapter {
 
 ## Mock adapter
 
-The built-in `mock` adapter is deterministic, local, and required by CI. A fixture is strict YAML:
+The built-in `mock` adapter is deterministic, local, and required by CI. A fixture is strict YAML described by [`schemas/mock-fixture.schema.json`](../schemas/mock-fixture.schema.json):
 
 ```yaml
 schema_version: "1"
@@ -44,7 +44,17 @@ fallback:
     message: No authored response exists.
 ```
 
-Lookup order is exact test ID, then the first matching literal substring pattern in authored order, then fallback. Matching is case-insensitive unless the pattern sets `case_sensitive: true`. A `sequence` selects the corresponding one-based repetition and reuses its final output after the sequence ends. Optional bounded `delay_ms` supports timeout tests. Fixture error responses are recorded as adapter or transport errors, never behavioral failures. A missing exact/pattern/fallback response is an adapter error; it cannot silently become an empty output or passing case.
+Validate it independently before a run:
+
+```bash
+node dist/cli.js validate path/to/responses.yaml --mock-fixture
+```
+
+Lookup order is exact test ID, then the first matching literal substring pattern in authored order, then fallback. Input patterns search the rendered message contents followed by inline artifact contents. Matching is case-insensitive unless the pattern sets `case_sensitive: true`. Prefer exact test-ID responses while authoring: a broad pattern or successful fallback can conceal a misspelled or renamed case ID. A fallback error is useful when every case should have an explicit control response.
+
+A `sequence` selects the corresponding one-based repetition and reuses its final output after the sequence ends. Optional bounded `delay_ms` supports timeout tests. Fixture error responses are recorded as adapter or transport errors, never behavioral failures. A missing exact/pattern/fallback response is an adapter error; it cannot silently become an empty output or passing case.
+
+`content` supplies `rawText`; `structured` supplies a parsed value. A response may provide both. Text, regex, section, exact, and length assertions prefer `rawText`, while JSON assertions prefer `structured`. When only one channel exists, text assertions can serialize structured output and JSON assertions can strictly parse raw text. Mock fixtures do not extract JSON from Markdown fences or prose.
 
 Fixtures are strict UTF-8 YAML. Duplicate mapping keys, semantically duplicate literal input patterns, aliases, unknown fields, output-plus-error combinations, empty sequences, and responses with no output are invalid. A response ID can appear only once because duplicate YAML keys are rejected. Fixtures are limited to 5 MiB, 200 input patterns, 100 sequence entries, a 60-second fixture delay, and 1,048,576 characters per authored content field; the runner additionally enforces its UTF-8 output limits.
 

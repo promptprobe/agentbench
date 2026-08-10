@@ -82,7 +82,10 @@ export class MockAdapter implements ExecutionAdapter {
     const bytes = await readBoundedFile(fixturePath, FILE_LIMITS.mockFixture, "Mock response fixture");
     const raw = parseYaml(decodeUtf8(bytes, `Mock response fixture ${fixturePath}`), `Mock response fixture ${fixturePath}`);
     assertJsonComplexity(raw, "Mock response fixture", 20, 50_000);
-    const fixture = parseSchema(MockFixtureSchema, raw, "Mock response fixture");
+    const fixture = parseSchema(MockFixtureSchema, raw, `Mock response fixture ${fixturePath}`, [
+      "Schema: schemas/mock-fixture.schema.json",
+      "Correct the listed response or lookup rule and rerun fixture validation.",
+    ]);
     return new MockAdapter(fixture, fixturePath, sha256(bytes));
   }
 

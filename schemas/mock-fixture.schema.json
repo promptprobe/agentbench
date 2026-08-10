@@ -1,238 +1,169 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/promptprobe/agentbench/blob/main/schemas/mock-fixture.schema.json",
+  "$id": "https://raw.githubusercontent.com/promptprobe/agentbench/main/schemas/mock-fixture.schema.json",
   "type": "object",
   "properties": {
     "schema_version": {
+      "$ref": "#/$defs/__schema0"
+    },
+    "id": {
+      "$ref": "#/$defs/__schema1"
+    },
+    "description": {
+      "$ref": "#/$defs/__schema2"
+    },
+    "responses": {
+      "$ref": "#/$defs/__schema3"
+    },
+    "input_patterns": {
+      "$ref": "#/$defs/__schema13"
+    },
+    "fallback": {
+      "$ref": "#/$defs/__schema15"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "__schema0": {
       "type": "string",
       "const": "1"
     },
-    "id": {
+    "__schema1": {
       "type": "string",
       "minLength": 1,
       "maxLength": 128,
       "pattern": "^[a-z0-9][a-z0-9._-]*$"
     },
-    "description": {
+    "__schema2": {
       "type": "string",
       "minLength": 1,
       "maxLength": 2000
     },
-    "responses": {
+    "__schema3": {
       "default": {},
       "type": "object",
       "propertyNames": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 128,
-        "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        "$ref": "#/$defs/__schema1"
       },
       "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "content": {
-            "type": "string",
-            "maxLength": 1048576
-          },
-          "structured": {},
-          "sequence": {
-            "minItems": 1,
-            "maxItems": 100,
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "content": {
-                  "type": "string",
-                  "maxLength": 1048576
-                },
-                "structured": {}
-              },
-              "additionalProperties": false
-            }
-          },
-          "delay_ms": {
-            "default": 0,
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 60000
-          },
-          "error": {
-            "type": "object",
-            "properties": {
-              "kind": {
-                "type": "string",
-                "enum": [
-                  "transport",
-                  "fixture"
-                ]
-              },
-              "message": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 1000
-              }
-            },
-            "required": [
-              "kind",
-              "message"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "delay_ms"
-        ],
-        "additionalProperties": false
+        "$ref": "#/$defs/__schema4"
       }
     },
-    "input_patterns": {
+    "__schema4": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/__schema5"
+        },
+        "structured": {
+          "$ref": "#/$defs/__schema6"
+        },
+        "sequence": {
+          "$ref": "#/$defs/__schema7"
+        },
+        "delay_ms": {
+          "$ref": "#/$defs/__schema11"
+        },
+        "error": {
+          "$ref": "#/$defs/__schema12"
+        }
+      },
+      "additionalProperties": false
+    },
+    "__schema5": {
+      "type": "string",
+      "maxLength": 1048576
+    },
+    "__schema6": {},
+    "__schema7": {
+      "minItems": 1,
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema8"
+      }
+    },
+    "__schema8": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/__schema9"
+        },
+        "structured": {
+          "$ref": "#/$defs/__schema10"
+        }
+      },
+      "additionalProperties": false
+    },
+    "__schema9": {
+      "type": "string",
+      "maxLength": 1048576
+    },
+    "__schema10": {},
+    "__schema11": {
+      "default": 0,
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 60000
+    },
+    "__schema12": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "transport",
+            "fixture"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "required": [
+        "kind",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "__schema13": {
       "default": [],
       "maxItems": 200,
       "type": "array",
       "items": {
-        "type": "object",
-        "properties": {
-          "contains": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 2000
-          },
-          "case_sensitive": {
-            "default": false,
-            "type": "boolean"
-          },
-          "response": {
-            "type": "object",
-            "properties": {
-              "content": {
-                "type": "string",
-                "maxLength": 1048576
-              },
-              "structured": {},
-              "sequence": {
-                "minItems": 1,
-                "maxItems": 100,
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "content": {
-                      "type": "string",
-                      "maxLength": 1048576
-                    },
-                    "structured": {}
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "delay_ms": {
-                "default": 0,
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 60000
-              },
-              "error": {
-                "type": "object",
-                "properties": {
-                  "kind": {
-                    "type": "string",
-                    "enum": [
-                      "transport",
-                      "fixture"
-                    ]
-                  },
-                  "message": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 1000
-                  }
-                },
-                "required": [
-                  "kind",
-                  "message"
-                ],
-                "additionalProperties": false
-              }
-            },
-            "required": [
-              "delay_ms"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "contains",
-          "case_sensitive",
-          "response"
-        ],
-        "additionalProperties": false
+        "$ref": "#/$defs/__schema14"
       }
     },
-    "fallback": {
+    "__schema14": {
       "type": "object",
       "properties": {
-        "content": {
+        "contains": {
           "type": "string",
-          "maxLength": 1048576
+          "minLength": 1,
+          "maxLength": 2000
         },
-        "structured": {},
-        "sequence": {
-          "minItems": 1,
-          "maxItems": 100,
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "content": {
-                "type": "string",
-                "maxLength": 1048576
-              },
-              "structured": {}
-            },
-            "additionalProperties": false
-          }
+        "case_sensitive": {
+          "default": false,
+          "type": "boolean"
         },
-        "delay_ms": {
-          "default": 0,
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 60000
-        },
-        "error": {
-          "type": "object",
-          "properties": {
-            "kind": {
-              "type": "string",
-              "enum": [
-                "transport",
-                "fixture"
-              ]
-            },
-            "message": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 1000
-            }
-          },
-          "required": [
-            "kind",
-            "message"
-          ],
-          "additionalProperties": false
+        "response": {
+          "$ref": "#/$defs/__schema4"
         }
       },
       "required": [
-        "delay_ms"
+        "contains",
+        "response"
       ],
       "additionalProperties": false
+    },
+    "__schema15": {
+      "$ref": "#/$defs/__schema4"
     }
-  },
-  "required": [
-    "schema_version",
-    "id",
-    "responses",
-    "input_patterns"
-  ],
-  "additionalProperties": false
+  }
 }

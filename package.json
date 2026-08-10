@@ -1,6 +1,6 @@
 {
   "name": "@promptprobe/agentbench",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reproducible behavioral evaluation for portable AI agents.",
   "type": "module",
   "license": "Apache-2.0",
@@ -36,6 +36,7 @@
     "schemas",
     "suites",
     "fixtures",
+    "examples",
     "docs",
     "README.md",
     "CONTRIBUTING.md",

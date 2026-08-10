@@ -3,6 +3,8 @@ import { basename, resolve } from "node:path";
 import { AgentBenchError } from "../errors.js";
 import { BUILTIN_SUITES_ROOT } from "../paths.js";
 import { SuiteManifestSchema, TestCaseSchema } from "../schema.js";
+import type { Assertion, TestCase } from "../schema.js";
+import { validateAuthoredJsonSchema } from "../evaluators/evaluate.js";
 import { assertJsonComplexity, decodeUtf8, FILE_LIMITS, readBoundedFile, resolveContainedFile, sha256 } from "../security.js";
 import type { LoadedCase, LoadedSuite } from "../core/types.js";
 import { parseSchema } from "../validation.js";
@@ -15,6 +17,31 @@ async function pathExists(path: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+function validateAssertionDefinitions(assertions: readonly Assertion[], testPath: string, prefix = "expected.assertions"): void {
+  assertions.forEach((assertion, index) => {
+    const path = `${prefix}[${index}]`;
+    if (assertion.type === "json_schema") {
+      try {
+        validateAuthoredJsonSchema(assertion.schema);
+      } catch (error) {
+        const details = error instanceof AgentBenchError ? [error.message, ...error.details] : [error instanceof Error ? error.message : String(error)];
+        throw new AgentBenchError("validation", `Test case ${testPath} has an invalid JSON Schema assertion at ${path}.`, [
+          ...details,
+          "Use a non-recursive draft 2020-12 schema with known keywords, local JSON Pointer $ref values, and no unconfigured formats.",
+        ]);
+      }
+    }
+    if (assertion.type === "all_of" || assertion.type === "any_of") {
+      validateAssertionDefinitions(assertion.assertions, testPath, `${path}.assertions`);
+    }
+  });
+}
+
+function validateTestCaseDefinition(definition: TestCase, path: string): TestCase {
+  validateAssertionDefinitions(definition.expected.assertions, path);
+  return definition;
 }
 
 export async function resolveSuitePath(input: string): Promise<string> {
@@ -32,7 +59,10 @@ export async function loadTestCase(path: string): Promise<LoadedCase> {
   const parsed = parseYaml(decodeUtf8(bytes, `Test case ${path}`), `Test case ${path}`);
   assertJsonComplexity(parsed, `Test case ${path}`);
   return {
-    definition: parseSchema(TestCaseSchema, parsed, `Test case ${path}`),
+    definition: validateTestCaseDefinition(parseSchema(TestCaseSchema, parsed, `Test case ${path}`, [
+      "Schema: schemas/test-case.schema.json",
+      "Correct the listed field or assertion and rerun validation.",
+    ]), path),
     source: { path, sha256: sha256(bytes) },
   };
 }
@@ -45,7 +75,10 @@ export async function loadSuite(input: string): Promise<LoadedSuite> {
   const manifestBytes = await readBoundedFile(manifestPath, FILE_LIMITS.suiteManifest, "Suite manifest");
   const rawManifest = parseYaml(decodeUtf8(manifestBytes, `Suite manifest ${manifestPath}`), `Suite manifest ${manifestPath}`);
   assertJsonComplexity(rawManifest, `Suite manifest ${manifestPath}`);
-  const manifest = parseSchema(SuiteManifestSchema, rawManifest, `Suite manifest ${manifestPath}`);
+  const manifest = parseSchema(SuiteManifestSchema, rawManifest, `Suite manifest ${manifestPath}`, [
+    "Schema: schemas/suite.schema.json",
+    "Correct the listed manifest field and rerun validation.",
+  ]);
   const cases: LoadedCase[] = [];
   const ids = new Map<string, string>();
   for (const relativeCase of manifest.cases) {

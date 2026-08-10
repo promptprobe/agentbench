@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/promptprobe/agentbench/blob/main/schemas/buzz-agent-snapshot-v1.schema.json",
+  "$id": "https://raw.githubusercontent.com/promptprobe/agentbench/main/schemas/buzz-agent-snapshot-v1.schema.json",
   "type": "object",
   "properties": {
     "format": {
@@ -87,18 +87,14 @@
           "maxItems": 128,
           "type": "array",
           "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
+            "$ref": "#/$defs/__schema0"
           }
         },
         "namePool": {
           "maxItems": 64,
           "type": "array",
           "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 120
+            "$ref": "#/$defs/__schema1"
           }
         },
         "idleTimeoutSeconds": {
@@ -189,7 +185,9 @@
         "entries": {
           "maxItems": 0,
           "type": "array",
-          "items": {}
+          "items": {
+            "$ref": "#/$defs/__schema2"
+          }
         }
       },
       "required": [
@@ -205,5 +203,18 @@
     "profile",
     "memory"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "__schema1": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "__schema2": {}
+  }
 }

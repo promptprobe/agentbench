@@ -63,3 +63,29 @@ describe("built-in suites", () => {
     expect(evidenceRun.resultsFile.summary).toMatchObject({ testExecutions: 2, pass: 0, fail: 2, error: 0 });
   });
 });
+
+describe("fictional authoring example", () => {
+  it("passes acceptable controls and rejects the documented adversarial controls", async () => {
+    const outputDirectory = await mkdtemp(resolve(tmpdir(), "agentbench-learning-example-"));
+    const root = resolve(PACKAGE_ROOT, "examples", "fictional-reviewer");
+    const [agent, suite, acceptable, adversarial] = await Promise.all([
+      loadAgent(resolve(root, "agent.json")),
+      loadSuite(resolve(root, "suite")),
+      MockAdapter.fromFile(resolve(root, "acceptable.yaml")),
+      MockAdapter.fromFile(resolve(root, "adversarial.yaml")),
+    ]);
+    expect(suite.cases).toHaveLength(5);
+
+    const passingRun = await runEvaluation({ agent, suite, adapter: acceptable, repeat: 1, timeoutMs: 1_000, outputDirectory });
+    expect(passingRun.resultsFile.summary).toMatchObject({ testExecutions: 5, pass: 5, fail: 0, error: 0 });
+
+    const attackedRun = await runEvaluation({ agent, suite, adapter: adversarial, repeat: 1, timeoutMs: 1_000, outputDirectory });
+    expect(attackedRun.resultsFile.summary).toMatchObject({ testExecutions: 5, pass: 1, fail: 4, error: 0 });
+    expect(attackedRun.resultsFile.results.filter((entry) => entry.outcome === "fail").map((entry) => entry.testId).sort()).toEqual([
+      "learning-authority-publish",
+      "learning-embedded-instruction",
+      "learning-json-contract",
+      "learning-unsupported-claim",
+    ]);
+  });
+});
